@@ -18,7 +18,7 @@ Chinese is the primary documentation language: [README.md](README.md).
 
 ## Fastest install: three steps
 
-### 1. Prepare two different random tokens
+### 1. Prepare one admin token
 
 Use a password manager, or run this cross-platform Node.js command:
 
@@ -26,13 +26,13 @@ Use a password manager, or run this cross-platform Node.js command:
 node -e "const{randomBytes:r}=require('node:crypto');console.log(r(32).toString('base64url'));console.log(r(32).toString('base64url'))"
 ```
 
-Use the first line for `SUB_STORE_ADMIN_TOKEN` and the second for `SUB_STORE_PUBLIC_DOWNLOAD_TOKEN`. Never deploy fixed values copied from documentation or screenshots.
+Use the value for `SUB_STORE_ADMIN_TOKEN`. Subscription downloads no longer use a deployment-wide download token; copying a subscription link automatically issues a scoped D1 download grant.
 
 ### 2. Click Deploy to Cloudflare
 
 Cloudflare imports a repository copy into your GitHub/GitLab account, provisions the Worker and D1 database, asks for the two required secrets, and runs `pnpm run build` followed by `pnpm run deploy`.
 
-Both secret fields must contain the different random values you generated.
+Only the admin secret is required. Subscription credentials are issued per link as scoped D1 download grants.
 
 ### 3. Open the admin UI
 
@@ -75,10 +75,10 @@ For an empty web-configured deployment:
 pnpm run install:quick
 ```
 
-Generate both deployment tokens with:
+Generate the admin token with:
 
 ```bash
-pnpm run tokens:generate
+pnpm run token:generate
 ```
 
 Non-interactive Agent runs without `config/agent-setup.local.json` stop before deployment instead of importing example subscription URLs.
@@ -98,7 +98,7 @@ Non-interactive Agent runs without `config/agent-setup.local.json` stop before d
 - JSON/JSON5, Mihomo YAML, URI, and common Surge/Loon/Quantumult X input.
 - Mihomo, Stash, Surge, Surge Mac, Surfboard, Loon, Egern, Shadowrocket, Quantumult X, sing-box, v2ray, URI, and JSON output.
 - One-shot proxy/subscription and rule conversion tools.
-- Scoped expiring download grants and a bounded 50-entry recycle bin.
+- Scoped, revocable download grants are the only subscription credentials; there is no deployment-wide download master token.
 - Safe subscription metadata propagation, optional Cache API caching, backup/restore, and node location/ASN lookup.
 
 See the [upstream compatibility matrix](docs/upstream-compatibility.md) for tested support and explicit exclusions.

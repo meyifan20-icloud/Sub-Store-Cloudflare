@@ -2,7 +2,6 @@ import { env, exports as workerExports } from "cloudflare:workers";
 import { describe, expect, it } from "vitest";
 
 const ADMIN_TOKEN = "test-admin-token";
-const DOWNLOAD_TOKEN = "test-download-token";
 
 describe("Worker and D1 integration", () => {
   it("applies migrations and keeps built-in templates out of D1", async () => {
@@ -64,7 +63,7 @@ describe("Worker and D1 integration", () => {
     });
     expect(create.status).toBe(200);
 
-    const download = await workerRequest(`/download/source/scripted-source/json/${DOWNLOAD_TOKEN}`, {}, false);
+    const download = await workerExports.default.fetch(new Request(await createScopedUrl("source", "scripted-source", "json")));
     expect(download.status).toBe(200);
     expect(await download.text()).toContain('"tls-fingerprint": "safari"');
 
@@ -127,9 +126,9 @@ describe("Worker and D1 integration", () => {
     const linkResponse = await workerRequest("/api/link/source/patch-source?target=json", {
       headers: { "x-forwarded-host": "attacker.example" },
     });
-    expect(getPath(await jsonObject(linkResponse), "data", "url")).toBe(
-      `https://downloads.example.com/download/source/patch-source/json?token=${DOWNLOAD_TOKEN}`,
-    );
+    const linkUrl = String(getPath(await jsonObject(linkResponse), "data", "url"));
+    expect(linkUrl).toMatch(/^https:\/\/downloads\.example\.com\/download\/source\/patch-source\/json\?token=.+/);
+    expect((await workerExports.default.fetch(new Request(linkUrl))).status).toBe(200);
 
     const collectionCreate = await workerRequest("/api/collections", {
       method: "POST",
@@ -191,7 +190,7 @@ describe("Worker and D1 integration", () => {
     });
     expect(collection.status).toBe(200);
 
-    const download = await workerRequest(`/download/collection/all-enabled/json/${DOWNLOAD_TOKEN}`, {}, false);
+    const download = await workerExports.default.fetch(new Request(await createScopedUrl("collection", "all-enabled", "json")));
     expect(download.status).toBe(200);
     const body = await download.text();
     expect(body).toContain("All Node A");
@@ -292,10 +291,8 @@ describe("Worker and D1 integration", () => {
     const customCount = await env.DB.prepare("SELECT COUNT(*) AS count FROM templates WHERE id = 'test-template'").first("count");
     expect(customCount).toBe(1);
 
-    const download = await workerRequest(
-      `/download/collection/test-collection/mihomo/${DOWNLOAD_TOKEN}`,
-      {},
-      false,
+    const download = await workerExports.default.fetch(
+      new Request(await createScopedUrl("collection", "test-collection", "mihomo")),
     );
     expect(download.status).toBe(200);
     expect(download.headers.get("content-type")).toContain("text/yaml");
@@ -391,6 +388,17 @@ describe("Worker and D1 integration", () => {
     expect((await workerRequest("/api/sources/recycled-source")).status).toBe(200);
   });
 });
+
+
+async function createScopedUrl(resourceType: "source" | "collection", resourceId: string, target?: string) {
+  const response = await workerRequest("/api/shares", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ resourceType, resourceId, target }),
+  });
+  expect(response.status).toBe(200);
+  return String(getPath(await jsonObject(response), "data", "url"));
+}
 
 async function workerRequest(path: string, init: RequestInit = {}, includeAdmin = true) {
   const headers = new Headers(init.headers);

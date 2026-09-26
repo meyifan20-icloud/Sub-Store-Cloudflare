@@ -387,14 +387,14 @@ apiRoutes.post("/preview/collection", async (c) => {
 apiRoutes.get("/link/source/:name", async (c) => {
   const sub = await getSource(c.env, c.req.param("name"));
   if (!sub) return failed(c, "Source not found", 404);
-  const link = buildDownloadLink(c, "source", sub.id);
+  const link = await buildDownloadLink(c, "source", sub.id);
   if (!link) return failed(c, "Unsupported target", 400);
   return success(c, link);
 });
 apiRoutes.get("/link/collection/:name", async (c) => {
   const collection = await getCollection(c.env, c.req.param("name"));
   if (!collection) return failed(c, "Collection not found", 404);
-  const link = buildDownloadLink(c, "collection", collection.id);
+  const link = await buildDownloadLink(c, "collection", collection.id);
   if (!link) return failed(c, "Unsupported target", 400);
   return success(c, link);
 });
@@ -598,18 +598,29 @@ function toSubscriptionCollection(input: JsonMap): SubscriptionCollection {
   };
 }
 
-function buildDownloadLink(c: ApiContext, kind: "source" | "collection", id: string) {
+async function buildDownloadLink(c: ApiContext, kind: "source" | "collection", id: string) {
   const rawTarget = c.req.query("target");
   const target = normalizeDownloadTarget(rawTarget);
   if (rawTarget && !target) return undefined;
+
+  const created = await createDownloadGrant(c.env, {
+    resourceType: kind,
+    resourceId: id,
+    target,
+  });
   const path = ["/download", kind, encodeURIComponent(id), target].filter(Boolean).join("/");
   const url = new URL(path, getPublicBaseUrl(c));
-  if (c.env.SUB_STORE_PUBLIC_DOWNLOAD_TOKEN) url.searchParams.set("token", c.env.SUB_STORE_PUBLIC_DOWNLOAD_TOKEN);
+  url.searchParams.set("token", created.token);
   for (const key of ["url", "content", "ua", "userAgent"]) {
     const value = c.req.query(key);
     if (value) url.searchParams.set(key, value);
   }
-  return { url: url.toString(), target: target || "auto", tokenIncluded: Boolean(c.env.SUB_STORE_PUBLIC_DOWNLOAD_TOKEN) };
+  return {
+    url: url.toString(),
+    target: target || "auto",
+    tokenIncluded: true,
+    grantId: created.grant?.id,
+  };
 }
 
 function getPublicBaseUrl(c: ApiContext) {

@@ -4,39 +4,84 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "$schema": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
     "deployment": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "workerName": { "type": "string", "minLength": 1 },
-        "d1DatabaseName": { "type": "string", "minLength": 1 },
-        "d1DatabaseId": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
-        "adminHostname": { "type": "string", "maxLength": 253 },
-        "downloadHostname": { "type": "string", "maxLength": 253 },
-        "adminToken": { "type": "string", "minLength": 16 },
-        "downloadToken": { "type": "string", "minLength": 16 },
+        "workerName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "d1DatabaseName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "d1DatabaseId": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F-]{36}$"
+        },
+        "adminHostname": {
+          "type": "string",
+          "maxLength": 253
+        },
+        "downloadHostname": {
+          "type": "string",
+          "maxLength": 253
+        },
+        "adminToken": {
+          "type": "string",
+          "minLength": 16
+        },
         "downloadTargets": {
           "type": "array",
-          "items": { "enum": ["mihomo", "stash", "surge", "surge-mac", "surfboard", "loon", "egern", "shadowrocket", "qx", "sing-box", "v2ray", "uri", "json"] },
+          "items": {
+            "enum": [
+              "mihomo",
+              "stash",
+              "surge",
+              "surge-mac",
+              "surfboard",
+              "loon",
+              "egern",
+              "shadowrocket",
+              "qx",
+              "sing-box",
+              "v2ray",
+              "uri",
+              "json"
+            ]
+          },
           "uniqueItems": true
         }
       }
     },
     "sources": {
       "type": "array",
-      "items": { "$ref": "#/$defs/source" }
+      "items": {
+        "$ref": "#/$defs/source"
+      }
     },
     "collections": {
       "type": "array",
-      "items": { "$ref": "#/$defs/collection" }
+      "items": {
+        "$ref": "#/$defs/collection"
+      }
     },
     "templates": {
       "type": "array",
-      "items": { "$ref": "#/$defs/template" }
+      "items": {
+        "$ref": "#/$defs/template"
+      }
     }
   },
-  "required": ["sources", "collections", "templates"],
+  "required": [
+    "sources",
+    "collections",
+    "templates"
+  ],
   "$defs": {
     "identifier": {
       "type": "string",
@@ -46,81 +91,256 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "type": { "enum": ["include", "exclude", "rename", "delete-field", "dedupe", "sort", "regex-sort", "resolve", "flag", "quick", "script"] },
-        "field": { "type": "string" },
+        "type": {
+          "enum": [
+            "include",
+            "exclude",
+            "rename",
+            "delete-field",
+            "dedupe",
+            "sort",
+            "regex-sort",
+            "resolve",
+            "flag",
+            "quick",
+            "script"
+          ]
+        },
+        "field": {
+          "type": "string"
+        },
         "fields": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
-        "pattern": { "type": "string" },
+        "pattern": {
+          "type": "string"
+        },
         "patterns": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "expressions": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
-        "replacement": { "type": "string" },
-        "direction": { "enum": ["asc", "desc", "random", "original"] },
-        "action": { "enum": ["delete", "rename"] },
-        "link": { "type": "string" },
-        "position": { "enum": ["front", "back"] },
-        "template": { "type": "string" },
-        "mode": { "enum": ["add", "remove"] },
-        "tw": { "enum": ["cn", "ws", "tw"] },
-        "provider": { "enum": ["Google", "Cloudflare", "Ali", "Tencent", "Custom"] },
-        "recordType": { "enum": ["A", "AAAA"] },
-        "filter": { "enum": ["disabled", "removeFailed", "IPOnly", "IPv4Only", "IPv6Only"] },
-        "url": { "type": "string" },
-        "edns": { "type": "string" },
-        "concurrency": {
-          "oneOf": [
-            { "type": "integer", "minimum": 1, "maximum": 12 },
-            { "type": "string" }
+        "replacement": {
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            "asc",
+            "desc",
+            "random",
+            "original"
           ]
         },
-        "scriptId": { "$ref": "#/$defs/identifier" },
-        "scriptKind": { "enum": ["filter", "operator"] },
-        "arguments": { "type": "object" },
-        "useless": { "enum": ["DEFAULT", "ENABLED", "DISABLED"] },
-        "udp": { "enum": ["DEFAULT", "ENABLED", "DISABLED"] },
-        "scert": { "enum": ["DEFAULT", "ENABLED", "DISABLED"] },
-        "tfo": { "enum": ["DEFAULT", "ENABLED", "DISABLED"] },
-        "vmess aead": { "enum": ["DEFAULT", "ENABLED", "DISABLED"] }
+        "action": {
+          "enum": [
+            "delete",
+            "rename"
+          ]
+        },
+        "link": {
+          "type": "string"
+        },
+        "position": {
+          "enum": [
+            "front",
+            "back"
+          ]
+        },
+        "template": {
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "add",
+            "remove"
+          ]
+        },
+        "tw": {
+          "enum": [
+            "cn",
+            "ws",
+            "tw"
+          ]
+        },
+        "provider": {
+          "enum": [
+            "Google",
+            "Cloudflare",
+            "Ali",
+            "Tencent",
+            "Custom"
+          ]
+        },
+        "recordType": {
+          "enum": [
+            "A",
+            "AAAA"
+          ]
+        },
+        "filter": {
+          "enum": [
+            "disabled",
+            "removeFailed",
+            "IPOnly",
+            "IPv4Only",
+            "IPv6Only"
+          ]
+        },
+        "url": {
+          "type": "string"
+        },
+        "edns": {
+          "type": "string"
+        },
+        "concurrency": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "scriptId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "scriptKind": {
+          "enum": [
+            "filter",
+            "operator"
+          ]
+        },
+        "arguments": {
+          "type": "object"
+        },
+        "useless": {
+          "enum": [
+            "DEFAULT",
+            "ENABLED",
+            "DISABLED"
+          ]
+        },
+        "udp": {
+          "enum": [
+            "DEFAULT",
+            "ENABLED",
+            "DISABLED"
+          ]
+        },
+        "scert": {
+          "enum": [
+            "DEFAULT",
+            "ENABLED",
+            "DISABLED"
+          ]
+        },
+        "tfo": {
+          "enum": [
+            "DEFAULT",
+            "ENABLED",
+            "DISABLED"
+          ]
+        },
+        "vmess aead": {
+          "enum": [
+            "DEFAULT",
+            "ENABLED",
+            "DISABLED"
+          ]
+        }
       },
-      "required": ["type"]
+      "required": [
+        "type"
+      ]
     },
     "source": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "id": { "$ref": "#/$defs/identifier" },
-        "name": { "type": "string" },
-        "type": { "enum": ["remote", "local"] },
-        "url": { "type": "string" },
-        "content": { "type": "string" },
-        "enabled": { "type": "boolean" },
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "remote",
+            "local"
+          ]
+        },
+        "url": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
         "filterPresetIds": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "uniqueItems": true
         },
         "filters": {
           "type": "array",
-          "items": { "$ref": "#/$defs/filter" }
+          "items": {
+            "$ref": "#/$defs/filter"
+          }
         },
-        "meta": { "type": "object" }
+        "meta": {
+          "type": "object"
+        }
       },
-      "required": ["id", "name", "type"],
+      "required": [
+        "id",
+        "name",
+        "type"
+      ],
       "allOf": [
         {
-          "if": { "properties": { "type": { "const": "remote" } } },
-          "then": { "required": ["url"] }
+          "if": {
+            "properties": {
+              "type": {
+                "const": "remote"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "url"
+            ]
+          }
         },
         {
-          "if": { "properties": { "type": { "const": "local" } } },
-          "then": { "required": ["content"] }
+          "if": {
+            "properties": {
+              "type": {
+                "const": "local"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "content"
+            ]
+          }
         }
       ]
     },
@@ -128,39 +348,78 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "id": { "$ref": "#/$defs/identifier" },
-        "name": { "type": "string" },
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "name": {
+          "type": "string"
+        },
         "sourceIds": {
           "type": "array",
-          "items": { "$ref": "#/$defs/identifier" },
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
           "uniqueItems": true
         },
-        "templateId": { "$ref": "#/$defs/identifier" },
-        "ignoreFailed": { "type": "boolean" },
-        "enabled": { "type": "boolean" },
+        "templateId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "ignoreFailed": {
+          "type": "boolean"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
         "filterPresetIds": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "uniqueItems": true
         },
         "filters": {
           "type": "array",
-          "items": { "$ref": "#/$defs/filter" }
+          "items": {
+            "$ref": "#/$defs/filter"
+          }
         },
-        "meta": { "type": "object" }
+        "meta": {
+          "type": "object"
+        }
       },
-      "required": ["id", "name", "sourceIds", "templateId"]
+      "required": [
+        "id",
+        "name",
+        "sourceIds",
+        "templateId"
+      ]
     },
     "template": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "id": { "$ref": "#/$defs/identifier" },
-        "name": { "type": "string" },
-        "target": { "enum": ["mihomo", "stash"] },
-        "config": { "type": "object" }
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "name": {
+          "type": "string"
+        },
+        "target": {
+          "enum": [
+            "mihomo",
+            "stash"
+          ]
+        },
+        "config": {
+          "type": "object"
+        }
       },
-      "required": ["id", "name", "target", "config"]
+      "required": [
+        "id",
+        "name",
+        "target",
+        "config"
+      ]
     }
   }
 }

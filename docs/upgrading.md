@@ -2,7 +2,7 @@
 
 升级的核心原则：复用原 Worker、原 D1 数据库和原 Worker Secrets，只更新代码并应用新增 migration。
 
-升级前先在管理端“设置”页面导出完整配置备份，并确认你仍保存着 admin token 和 download token。
+升级前先在管理端“设置”页面导出完整配置备份，并确认你仍保存着 Admin Token。Scoped Download Grant 保存在 D1 中，不需要维护部署级 Download Token。
 
 ## 先判断安装方式
 
@@ -53,7 +53,7 @@ Workers Builds 会在 push 后重新运行构建和部署。根目录 `deploy` �
 - 构建命令：`pnpm run build`
 - 部署命令：`pnpm run deploy`
 - D1 仍绑定原数据库
-- 两个 Worker Secrets 仍存在
+- `SUB_STORE_ADMIN_TOKEN` Worker Secret 仍存在
 
 ## Agent / CLI 安装
 
@@ -71,7 +71,7 @@ corepack enable
 pnpm run install:cloudflare
 ```
 
-安装器会复用本地保存的 D1 ID 和 Token，运行检查、migration、deploy、seed 和 HTTP 验证。失败后仍使用同一命令恢复，不要临时更换 Token。
+安装器会复用本地保存的 D1 ID 和 Admin Token，运行检查、migration、deploy、seed 和 HTTP 验证。失败后仍使用同一命令恢复，不要临时更换 Token。
 
 ## 手动 Wrangler 升级
 

@@ -18,7 +18,7 @@ English: [README.en.md](README.en.md)
 
 ## 最快部署：三步完成
 
-### 1. 准备两个不同的随机 Token
+### 1. 准备一个管理员 Token
 
 使用密码管理器生成，或者在安装了 Node.js 的电脑运行：
 
@@ -26,7 +26,7 @@ English: [README.en.md](README.en.md)
 node -e "const{randomBytes:r}=require('node:crypto');console.log(r(32).toString('base64url'));console.log(r(32).toString('base64url'))"
 ```
 
-第一行用于 `SUB_STORE_ADMIN_TOKEN`，第二行用于 `SUB_STORE_PUBLIC_DOWNLOAD_TOKEN`。不要使用 README、截图或示例里的固定字符串。
+这个值用于 `SUB_STORE_ADMIN_TOKEN`。订阅下载不再使用全局 Download Token；复制订阅链接时会自动创建独立的 Scoped Download Grant。不要使用 README、截图或示例里的固定字符串。
 
 ### 2. 点击 Deploy to Cloudflare
 
@@ -38,7 +38,7 @@ node -e "const{randomBytes:r}=require('node:crypto');console.log(r(32).toString(
 - 要求你填写两个 Token；
 - 执行 `pnpm run build` 和 `pnpm run deploy`。
 
-两个 Secret 输入框必须填写你刚生成的不同随机值。
+只需要填写管理员 Secret。订阅下载凭证由 D1 中的 Scoped Download Grant 按链接独立生成。
 
 ### 3. 打开管理页面
 
@@ -81,10 +81,10 @@ pnpm run install:cloudflare
 pnpm run install:quick
 ```
 
-需要单独生成两个跨平台 Token：
+需要单独生成管理员 Token：
 
 ```bash
-pnpm run tokens:generate
+pnpm run token:generate
 ```
 
 ### AI Agent 安装
@@ -109,7 +109,7 @@ pnpm run tokens:generate
 - JSON/JSON5、Mihomo YAML、URI、Surge/Loon/Quantumult X 等输入。
 - Mihomo、Stash、Surge、Surge Mac、Surfboard、Loon、Egern、Shadowrocket、Quantumult X、sing-box、v2ray、URI 和 JSON 输出。
 - 一次性节点/订阅转换和规则转换工具。
-- 独立、限时、可撤销、可限制格式的下载授权。
+- 每个订阅链接使用独立、可撤销、可限制格式/有效期的 Scoped Download Grant；不保留全局下载总钥匙。
 - 最多 50 条的配置回收站。
 - 订阅元数据透传、Workers Cache API 缓存和失败回退。
 - 配置备份/恢复以及节点地区、组织和 ASN 查询。
@@ -157,7 +157,7 @@ http://localhost:8787/?token=dev-admin-token
 ## 隐私与安全
 
 - 不要提交订阅 URL、节点 URI、Token、私有 D1 ID 或生成的 seed SQL。
-- 管理端和 `/api/*` 使用 admin token；`/download/*` 使用 download token。
+- 管理端和 `/api/*` 使用 Admin Token；`/download/*` 只接受按 Source / Collection 生成的 Scoped Download Grant。
 - 项目不会从网页、D1 或远程 URL 动态执行任意 JavaScript。
 - 发布或提 issue 前请先看 [SECURITY.md](SECURITY.md) 和 [故障排查](docs/troubleshooting.md)。
 

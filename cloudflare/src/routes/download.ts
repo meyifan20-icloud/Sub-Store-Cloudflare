@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { Context } from "hono";
-import { failed, isTokenValid } from "../lib/http";
+import { failed } from "../lib/http";
 import { authorizeScopedDownload } from "../lib/compatibility-resources";
 import { buildSubscriptionResult, getTargetContentType, normalizeTarget, normalizeTargetAlias } from "../lib/subscription";
 import { getRoutingTemplate, getSettings, getSource, getSubscriptionCollection, getSubscriptionSources } from "../lib/store";
@@ -153,9 +153,8 @@ async function rejectInvalidDownloadToken(
   target: SubscriptionTarget,
 ) {
   const token = getDownloadToken(c);
-  if (await isTokenValid(c.env.SUB_STORE_PUBLIC_DOWNLOAD_TOKEN, token)) return undefined;
   if (await authorizeScopedDownload(c.env, token, resourceType, resourceId, target)) return undefined;
-  return failed(c, "Download token is invalid", 403);
+  return failed(c, "Scoped download grant is invalid", 403);
 }
 
 function getDownloadTarget(c: DownloadContext, defaultTarget?: string) {

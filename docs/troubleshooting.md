@@ -25,7 +25,7 @@ pnpm --dir cloudflare exec wrangler whoami
 
 ## Deploy Button 的 Secret 已经被填满
 
-正常情况下，`SUB_STORE_ADMIN_TOKEN` 和 `SUB_STORE_PUBLIC_DOWNLOAD_TOKEN` 需要你自己填写两个不同的随机值。
+正常情况下只需要配置 `SUB_STORE_ADMIN_TOKEN`。订阅下载凭证由 Scoped Download Grant 自动生成。
 
 如果输入框出现 `replace-with-...`、`example` 或其他公开固定字符串，不要点击部署。这通常表示部署源仍包含会被 Cloudflare 读取的根目录 `.dev.vars.example`。请确认使用仓库最新版本并提交 issue。
 
@@ -91,13 +91,11 @@ pnpm run migrate:remote
 线上 Worker 至少需要：
 
 - `SUB_STORE_ADMIN_TOKEN`
-- `SUB_STORE_PUBLIC_DOWNLOAD_TOKEN`
 
 重新写入：
 
 ```bash
 pnpm --dir cloudflare exec wrangler secret put SUB_STORE_ADMIN_TOKEN --config wrangler.deploy.local.jsonc
-pnpm --dir cloudflare exec wrangler secret put SUB_STORE_PUBLIC_DOWNLOAD_TOKEN --config wrangler.deploy.local.jsonc
 ```
 
 ## 部署按钮成功但没有订阅源
@@ -133,13 +131,13 @@ pnpm run install:doctor
 
 ## 下载链接返回 401
 
-检查链接里是否使用 download token，而不是 admin token：
+检查链接是否来自管理端生成的 Scoped Download Grant，而不是手工把 Admin Token 拼进 URL：
 
 ```text
 /download/collection/<collection-id>/mihomo?token=<download-token>
 ```
 
-管理界面和 `/api/*` 使用 admin token。`/download/*` 使用 download token。
+管理界面和 `/api/*` 使用 Admin Token；`/download/*` 使用 Scoped Download Grant。
 
 ## 输出格式不对
 
