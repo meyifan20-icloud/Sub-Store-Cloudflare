@@ -355,6 +355,40 @@ jobs:
               text,
               flags=re.S,
           )
+          # Harden installer cleanup even if upstream formatting changes prevent a large block match.
+          text = re.sub(r'^\s*const configuredDownloadToken.*\n', "", text, flags=re.M)
+          text = re.sub(r'^\s*const downloadToken = configuredDownloadToken.*\n', "", text, flags=re.M)
+          text = text.replace("  if (!configuredAdminToken || !configuredDownloadToken) {", "  if (!configuredAdminToken) {")
+          text = re.sub(r'^\s*if \(!configuredDownloadToken\) deployment\.downloadToken = downloadToken;\n', "", text, flags=re.M)
+          text = text.replace("Generated tokens were saved", "Generated admin token was saved")
+          text = re.sub(r'^\s*setSecret\(DOWNLOAD_SECRET, downloadToken\);\n', "", text, flags=re.M)
+          text = text.replace(
+              "verifyDeployment({ baseUrl, adminToken, downloadToken, collections: setup.collections || [] })",
+              "verifyDeployment({ baseUrl, adminToken, collections: setup.collections || [] })",
+          )
+          text = re.sub(r'^\s*downloadToken,\n', "", text, flags=re.M)
+
+          if "const secretsPath =" not in text:
+              text = text.replace(
+                  "  setSecret(ADMIN_SECRET, adminToken);\n",
+                  '  const secretsPath = "cloudflare/.deploy-secrets.local";\n'
+                  '  writeFileSync(secretsPath, `SUB_STORE_ADMIN_TOKEN=${adminToken}\\n`, { mode: 0o600 });\n',
+              )
+              text = text.replace(
+                  '  const deployResult = run("pnpm", ["run", "deploy:local"], { label: "Deploy Worker", capture: true, echo: true });',
+                  '  const deployResult = run("pnpm", ["--dir", "cloudflare", "exec", "wrangler", "deploy", "--config", "wrangler.deploy.local.jsonc", "--secrets-file", ".deploy-secrets.local"], { label: "Deploy Worker with admin secret", capture: true, echo: true });\n'
+                  '  unlinkSync(secretsPath);',
+              )
+
+          text = re.sub(
+              r'\nfunction setSecret\(key, value\) \{.*?\n\}\n\nfunction verifyDeployment',
+              '\nfunction verifyDeployment',
+              text,
+              flags=re.S,
+          )
+
+          if "downloadToken" in text or "SUB_STORE_PUBLIC_DOWNLOAD_TOKEN" in text:
+              raise SystemExit("installer still contains deployment-wide download token logic")
           write(p, text)
 
           # Ensure generated secret temp file cannot be committed.
