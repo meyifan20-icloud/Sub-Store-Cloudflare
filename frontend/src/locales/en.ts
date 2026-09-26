@@ -214,7 +214,7 @@ export default {
         cancel: "Cancel",
         desc: "Download links can choose an output target and support temporary url/content/ua parameters.",
         title: "Subscription Link Parameters",
-        content: "https://github.com/realchendahuang/sub-store-cloudflare#deployment"
+        content: "https://github.com/meyifan20-icloud/Sub-Store-Cloudflare#deployment"
       }
     },
     sort: {
