@@ -383,6 +383,16 @@ jobs:
               'const download = await workerRequest(`/download/collection/all-enabled/json/${DOWNLOAD_TOKEN}`, {}, false);',
               'const download = await workerExports.default.fetch(new Request(await createScopedUrl("collection", "all-enabled", "json")));',
           )
+          text = text.replace(
+              '''    const download = await workerRequest(
+                `/download/collection/test-collection/mihomo/${DOWNLOAD_TOKEN}`,
+                {},
+                false,
+              );''',
+              '''    const download = await workerExports.default.fetch(
+                new Request(await createScopedUrl("collection", "test-collection", "mihomo")),
+              );''',
+          )
           helper = '''
           async function createScopedUrl(resourceType: "source" | "collection", resourceId: string, target?: string) {
             const response = await workerRequest("/api/shares", {
