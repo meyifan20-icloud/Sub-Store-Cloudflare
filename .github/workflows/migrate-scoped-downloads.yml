@@ -534,6 +534,10 @@ jobs:
           corepack enable
           pnpm install --frozen-lockfile
 
+      - name: Regenerate Worker binding types
+        run: |
+          pnpm --dir cloudflare exec wrangler types ./src/worker-configuration.d.ts --config wrangler.jsonc --env-interface SubStoreEnv --include-runtime false --strict-vars false
+
       - name: Validate code, tests, installer and deployment
         run: |
           pnpm run check
