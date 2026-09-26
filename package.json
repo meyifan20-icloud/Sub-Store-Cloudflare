@@ -2,13 +2,13 @@
   "name": "sub-store-cloudflare-workspace",
   "version": "1.1.0",
   "description": "Cloudflare-native subscription aggregation and routing template manager powered by Workers, Static Assets, D1, and Worker Secrets.",
-  "homepage": "https://github.com/meyifan20-icloud/Sub-Store-Cloudflare#readme",
+  "homepage": "https://github.com/realchendahuang/sub-store-cloudflare#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/meyifan20-icloud/Sub-Store-Cloudflare.git"
+    "url": "https://github.com/realchendahuang/sub-store-cloudflare.git"
   },
   "bugs": {
-    "url": "https://github.com/meyifan20-icloud/Sub-Store-Cloudflare/issues"
+    "url": "https://github.com/realchendahuang/sub-store-cloudflare/issues"
   },
   "license": "AGPL-3.0-or-later",
   "keywords": [
@@ -35,6 +35,7 @@
     "install:cloudflare": "node scripts/install-cloudflare.mjs",
     "install:quick": "node scripts/install-cloudflare.mjs --quick",
     "install:doctor": "node scripts/install-cloudflare.mjs --doctor",
+    "tokens:generate": "node scripts/generate-deployment-tokens.mjs",
     "deploy:config": "node scripts/render-wrangler-config.mjs",
     "check:worker": "pnpm run scripts:generate && pnpm --dir cloudflare run check",
     "check:tests": "pnpm run scripts:generate && pnpm --dir cloudflare run test",
@@ -65,8 +66,7 @@
     "check:open-source": "node scripts/check-open-source.mjs",
     "check:history": "node scripts/check-git-history.mjs",
     "release:prepare": "node scripts/prepare-release.mjs",
-    "check:release": "pnpm run check && pnpm run check:tests && pnpm run check:agent && pnpm run check:installer && pnpm run check:deploy-experience && pnpm run check:module-format && pnpm run check:worker-contract && pnpm run check:docs && pnpm run check:deploy-config && pnpm run check:deploy-config -- wrangler.jsonc && pnpm run check:audit && pnpm run check:runtime && pnpm run check:scripts && pnpm run check:open-source && pnpm run check:history -- main",
-    "token:generate": "node scripts/generate-admin-token.mjs"
+    "check:release": "pnpm run check && pnpm run check:tests && pnpm run check:agent && pnpm run check:installer && pnpm run check:deploy-experience && pnpm run check:module-format && pnpm run check:worker-contract && pnpm run check:docs && pnpm run check:deploy-config && pnpm run check:deploy-config -- wrangler.jsonc && pnpm run check:audit && pnpm run check:runtime && pnpm run check:scripts && pnpm run check:open-source && pnpm run check:history -- main"
   },
   "cloudflare": {
     "bindings": {
@@ -75,6 +75,9 @@
       },
       "SUB_STORE_ADMIN_TOKEN": {
         "description": "Required long random token for the admin UI and `/api/*`. Use a password manager or the cross-platform command in README; never keep a public placeholder."
+      },
+      "SUB_STORE_PUBLIC_DOWNLOAD_TOKEN": {
+        "description": "Required long random token for `/download/*`. It must differ from the admin token; never keep a public placeholder."
       }
     }
   },

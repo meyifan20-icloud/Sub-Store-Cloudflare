@@ -1,14 +1,12 @@
 # Sub-Store Cloudflare
 
-> **个人维护版**：本仓库由 meyifan20-icloud 独立维护，Cloudflare-native 技术基线来源于 [realchendahuang/sub-store-cloudflare](https://github.com/realchendahuang/sub-store-cloudflare)。日常部署、Clone 与资源入口均使用本仓库；原项目保留在致谢与来源说明中。
-
-[![Release](https://img.shields.io/github/v/release/meyifan20-icloud/Sub-Store-Cloudflare?include_prereleases&sort=semver)](https://github.com/meyifan20-icloud/Sub-Store-Cloudflare/releases)
-[![License: AGPL-3.0](https://img.shields.io/github/license/meyifan20-icloud/Sub-Store-Cloudflare)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/realchendahuang/sub-store-cloudflare?include_prereleases&sort=semver)](https://github.com/realchendahuang/sub-store-cloudflare/releases)
+[![License: AGPL-3.0](https://img.shields.io/github/license/realchendahuang/sub-store-cloudflare)](LICENSE)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/workers/)
 [![D1](https://img.shields.io/badge/Storage-D1-F38020?logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/d1/)
 [![Workers Free](https://img.shields.io/badge/Designed_for-Workers_Free-2F7DFF)](docs/upstream-compatibility.md)
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/meyifan20-icloud/Sub-Store-Cloudflare)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/realchendahuang/sub-store-cloudflare)
 
 把机场订阅、自建节点、节点处理和分流模板放到你自己的 Cloudflare Worker 中，最终只给客户端一个订阅链接。
 
@@ -18,7 +16,7 @@ English: [README.en.md](README.en.md)
 
 ## 最快部署：三步完成
 
-### 1. 准备一个管理员 Token
+### 1. 准备两个不同的随机 Token
 
 使用密码管理器生成，或者在安装了 Node.js 的电脑运行：
 
@@ -26,7 +24,7 @@ English: [README.en.md](README.en.md)
 node -e "const{randomBytes:r}=require('node:crypto');console.log(r(32).toString('base64url'));console.log(r(32).toString('base64url'))"
 ```
 
-这个值用于 `SUB_STORE_ADMIN_TOKEN`。订阅下载不再使用全局 Download Token；复制订阅链接时会自动创建独立的 Scoped Download Grant。不要使用 README、截图或示例里的固定字符串。
+第一行用于 `SUB_STORE_ADMIN_TOKEN`，第二行用于 `SUB_STORE_PUBLIC_DOWNLOAD_TOKEN`。不要使用 README、截图或示例里的固定字符串。
 
 ### 2. 点击 Deploy to Cloudflare
 
@@ -38,7 +36,7 @@ node -e "const{randomBytes:r}=require('node:crypto');console.log(r(32).toString(
 - 要求你填写两个 Token；
 - 执行 `pnpm run build` 和 `pnpm run deploy`。
 
-只需要填写管理员 Secret。订阅下载凭证由 D1 中的 Scoped Download Grant 按链接独立生成。
+两个 Secret 输入框必须填写你刚生成的不同随机值。
 
 ### 3. 打开管理页面
 
@@ -67,7 +65,7 @@ node -e "const{randomBytes:r}=require('node:crypto');console.log(r(32).toString(
 需要 Git、Node.js 22+ 和 Corepack：
 
 ```bash
-git clone https://github.com/meyifan20-icloud/Sub-Store-Cloudflare.git
+git clone https://github.com/realchendahuang/sub-store-cloudflare.git
 cd sub-store-cloudflare
 corepack enable
 pnpm run install:cloudflare
@@ -81,10 +79,10 @@ pnpm run install:cloudflare
 pnpm run install:quick
 ```
 
-需要单独生成管理员 Token：
+需要单独生成两个跨平台 Token：
 
 ```bash
-pnpm run token:generate
+pnpm run tokens:generate
 ```
 
 ### AI Agent 安装
@@ -109,7 +107,7 @@ pnpm run token:generate
 - JSON/JSON5、Mihomo YAML、URI、Surge/Loon/Quantumult X 等输入。
 - Mihomo、Stash、Surge、Surge Mac、Surfboard、Loon、Egern、Shadowrocket、Quantumult X、sing-box、v2ray、URI 和 JSON 输出。
 - 一次性节点/订阅转换和规则转换工具。
-- 每个订阅链接使用独立、可撤销、可限制格式/有效期的 Scoped Download Grant；不保留全局下载总钥匙。
+- 独立、限时、可撤销、可限制格式的下载授权。
 - 最多 50 条的配置回收站。
 - 订阅元数据透传、Workers Cache API 缓存和失败回退。
 - 配置备份/恢复以及节点地区、组织和 ASN 查询。
@@ -157,7 +155,7 @@ http://localhost:8787/?token=dev-admin-token
 ## 隐私与安全
 
 - 不要提交订阅 URL、节点 URI、Token、私有 D1 ID 或生成的 seed SQL。
-- 管理端和 `/api/*` 使用 Admin Token；`/download/*` 只接受按 Source / Collection 生成的 Scoped Download Grant。
+- 管理端和 `/api/*` 使用 admin token；`/download/*` 使用 download token。
 - 项目不会从网页、D1 或远程 URL 动态执行任意 JavaScript。
 - 发布或提 issue 前请先看 [SECURITY.md](SECURITY.md) 和 [故障排查](docs/troubleshooting.md)。
 

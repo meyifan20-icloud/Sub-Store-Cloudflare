@@ -13,6 +13,7 @@ export default defineConfig({
         bindings: {
           TEST_MIGRATIONS: await readD1Migrations(`${projectRoot}migrations`),
           SUB_STORE_ADMIN_TOKEN: "test-admin-token",
+          SUB_STORE_PUBLIC_DOWNLOAD_TOKEN: "test-download-token",
           SUB_STORE_APP_NAME: "Sub-Store Cloudflare Test",
           SUB_STORE_PUBLIC_DOWNLOAD_HOSTS: "downloads.example.com",
         },

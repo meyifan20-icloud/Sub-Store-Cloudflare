@@ -4,9 +4,7 @@
   "main": "cloudflare/src/index.ts",
   "workers_dev": true,
   "compatibility_date": "2026-07-08",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "frontend/dist",
     "binding": "ASSETS",
@@ -19,7 +17,8 @@
   },
   "secrets": {
     "required": [
-      "SUB_STORE_ADMIN_TOKEN"
+      "SUB_STORE_ADMIN_TOKEN",
+      "SUB_STORE_PUBLIC_DOWNLOAD_TOKEN"
     ]
   },
   "d1_databases": [

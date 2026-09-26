@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { copyFileSync, existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { createInterface } from "node:readline/promises";
 
@@ -17,6 +17,7 @@ const LOCAL_SCRIPT_MANIFEST_PATH = "config/script-plugins.local.json";
 const LOCAL_SCRIPT_DIRECTORY = "config/scripts.local";
 const GENERATED_SCRIPT_DIRECTORY = "cloudflare/src/generated";
 const ADMIN_SECRET = "SUB_STORE_ADMIN_TOKEN";
+const DOWNLOAD_SECRET = "SUB_STORE_PUBLIC_DOWNLOAD_TOKEN";
 
 const state = {
   createdSetup: false,
@@ -58,13 +59,16 @@ async function main() {
   const d1DatabaseName = stringValue(options.d1DatabaseName, stringValue(deployment.d1DatabaseName, "sub-store-cloudflare"));
   const downloadTargets = normalizeTargets(deployment.downloadTargets);
   const configuredAdminToken = stringValue(options.adminToken) || stringValue(process.env.SUB_STORE_ADMIN_TOKEN) || stringValue(deployment.adminToken);
+  const configuredDownloadToken = stringValue(options.downloadToken) || stringValue(process.env.SUB_STORE_PUBLIC_DOWNLOAD_TOKEN) || stringValue(deployment.downloadToken);
   const adminToken = configuredAdminToken || generateToken();
+  const downloadToken = configuredDownloadToken || generateToken();
 
-  if (!configuredAdminToken) {
+  if (!configuredAdminToken || !configuredDownloadToken) {
     if (!configuredAdminToken) deployment.adminToken = adminToken;
+    if (!configuredDownloadToken) deployment.downloadToken = downloadToken;
     setup.deployment = deployment;
     writeFileSync(SETUP_PATH, `${JSON.stringify(setup, null, 2)}\n`);
-    info(`Generated admin token was saved to ignored file ${SETUP_PATH} for safe resume.`);
+    info(`Generated tokens were saved to ignored file ${SETUP_PATH} for safe resume.`);
   }
 
   checkWranglerLogin({ soft: false });
@@ -75,20 +79,14 @@ async function main() {
   });
   state.renderedConfig = true;
 
-  const secretsPath = "cloudflare/.deploy-secrets.local";
-  writeFileSync(secretsPath, `SUB_STORE_ADMIN_TOKEN=${adminToken}
-`, { mode: 0o600 });
+  setSecret(ADMIN_SECRET, adminToken);
+  setSecret(DOWNLOAD_SECRET, downloadToken);
+  state.setSecrets = true;
 
   run("pnpm", ["run", "check"], { label: "Build and type-check" });
   run("pnpm", ["run", "migrate:remote"], { label: "Apply remote D1 migrations" });
   state.migrated = true;
-  const deployResult = run(
-    "pnpm",
-    ["--dir", "cloudflare", "exec", "wrangler", "deploy", "--config", "wrangler.deploy.local.jsonc", "--secrets-file", ".deploy-secrets.local"],
-    { label: "Deploy Worker with admin secret", capture: true, echo: true },
-  );
-  unlinkSync(secretsPath);
-  state.setSecrets = true;
+  const deployResult = run("pnpm", ["run", "deploy:local"], { label: "Deploy Worker", capture: true, echo: true });
   state.deployed = true;
 
   run("pnpm", ["run", "seed:render"], { label: "Render seed SQL" });
@@ -97,12 +95,13 @@ async function main() {
   state.seeded = true;
 
   const baseUrl = baseUrlFor(workerName, deployment, deployResult.stdout + deployResult.stderr);
-  const verification = verifyDeployment({ baseUrl, adminToken, collections: setup.collections || [] });
+  const verification = verifyDeployment({ baseUrl, adminToken, downloadToken, collections: setup.collections || [] });
   state.verified = verification.ok;
 
   printResult({
     baseUrl,
     adminToken,
+    downloadToken,
     workerName,
     d1DatabaseName,
     sources: setup.sources || [],
@@ -233,7 +232,19 @@ function parseDatabaseId(output) {
   return uuid?.[0] || "";
 }
 
-function verifyDeployment({ baseUrl, adminToken, collections }) {
+function setSecret(key, value) {
+  const result = spawnSync("pnpm", ["--dir", "cloudflare", "exec", "wrangler", "secret", "put", key, "--config", "wrangler.deploy.local.jsonc"], {
+    input: `${value}\n`,
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+  if (result.status !== 0) {
+    fail(`Failed to set ${key}.\n${result.stderr || result.stdout}`);
+  }
+  info(`Set Worker secret ${key}.`);
+}
+
+function verifyDeployment({ baseUrl, adminToken, downloadToken, collections }) {
   const checks = [];
   const adminPaths = ["/api/env", "/api/templates", "/api/sources", "/api/collections"];
   for (const path of adminPaths) {
@@ -242,10 +253,8 @@ function verifyDeployment({ baseUrl, adminToken, collections }) {
 
   const collectionId = collections.map((collection) => stringValue(collection.id || collection.name)).find(Boolean);
   if (collectionId) {
-    const scopedUrl = createScopedDownloadUrl(baseUrl, "collection", collectionId, "mihomo", adminToken);
-    checks.push(scopedUrl
-      ? fetchCheck(scopedUrl, `/download/collection/${collectionId}/mihomo (scoped grant)`)
-      : { label: `/api/link/collection/${collectionId}`, ok: false, error: "Could not create scoped grant" });
+    checks.push(fetchCheck(`${baseUrl}/api/link/collection/${encodeURIComponent(collectionId)}`, `/api/link/collection/${collectionId}`, adminToken));
+    checks.push(fetchCheck(`${baseUrl}/download/collection/${encodeURIComponent(collectionId)}/mihomo?token=${encodeURIComponent(downloadToken)}`, `/download/collection/${collectionId}/mihomo`));
   }
 
   const failedChecks = checks.filter((check) => !check.ok);
@@ -253,24 +262,6 @@ function verifyDeployment({ baseUrl, adminToken, collections }) {
     ok: failedChecks.length === 0,
     checks,
   };
-}
-
-function createScopedDownloadUrl(baseUrl, kind, id, target, adminToken) {
-  const query = target ? `?target=${encodeURIComponent(target)}` : "";
-  const endpoint = `${baseUrl}/api/link/${kind}/${encodeURIComponent(id)}${query}`;
-  const args = ["-fsS", "--max-time", "30", "--header", `Authorization: Bearer ${adminToken}`, endpoint];
-  const result = spawnSync("curl", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  if (result.status !== 0) {
-    warn(`Could not create scoped download grant for ${kind} ${id}: ${String(result.stderr || result.stdout).trim()}`);
-    return "";
-  }
-  try {
-    const payload = JSON.parse(result.stdout);
-    return stringValue(payload?.data?.url);
-  } catch (error) {
-    warn(`Invalid scoped download response for ${kind} ${id}: ${error instanceof Error ? error.message : String(error)}`);
-    return "";
-  }
 }
 
 function fetchCheck(url, label, bearerToken = "") {
@@ -316,22 +307,20 @@ function parseWorkersDevSubdomain() {
   return match?.[1] || "";
 }
 
-function printResult({ baseUrl, adminToken, workerName, d1DatabaseName, sources, collections, downloadTargets, verification }) {
+function printResult({ baseUrl, adminToken, downloadToken, workerName, d1DatabaseName, sources, collections, downloadTargets, verification }) {
   banner("Deployment result");
   console.log(`Worker: ${workerName}`);
   console.log(`D1: ${d1DatabaseName}`);
   console.log(`Admin URL: ${baseUrl}/?token=${adminToken}`);
   console.log("");
-  console.log("Scoped download URLs:");
+  console.log("Download URLs:");
   for (const collection of collections) {
     const id = stringValue(collection.id || collection.name);
     if (!id) continue;
     console.log(`- ${collection.name || id}`);
-    const autoUrl = createScopedDownloadUrl(baseUrl, "collection", id, "", adminToken);
-    if (autoUrl) console.log(`  ${autoUrl}`);
+    console.log(`  ${baseUrl}/download/collection/${encodeURIComponent(id)}?token=${downloadToken}`);
     for (const target of downloadTargets) {
-      const targetUrl = createScopedDownloadUrl(baseUrl, "collection", id, target, adminToken);
-      if (targetUrl) console.log(`  ${targetUrl}`);
+      console.log(`  ${baseUrl}/download/collection/${encodeURIComponent(id)}/${target}?token=${downloadToken}`);
     }
   }
   console.log("");

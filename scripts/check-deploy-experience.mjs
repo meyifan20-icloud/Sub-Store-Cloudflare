@@ -13,7 +13,7 @@ if (!existsSync("cloudflare/.dev.vars.example")) {
 
 const wrangler = parse("wrangler.jsonc");
 const requiredSecrets = new Set(wrangler?.secrets?.required || []);
-for (const secret of ["SUB_STORE_ADMIN_TOKEN"]) {
+for (const secret of ["SUB_STORE_ADMIN_TOKEN", "SUB_STORE_PUBLIC_DOWNLOAD_TOKEN"]) {
   if (!requiredSecrets.has(secret)) findings.push(`wrangler.jsonc must require ${secret}`);
 }
 if (!Array.isArray(wrangler.d1_databases) || !wrangler.d1_databases.some((binding) => binding.binding === "DB")) {
@@ -26,7 +26,7 @@ for (const script of [
   "deploy",
   "install:cloudflare",
   "install:quick",
-  "token:generate",
+  "tokens:generate",
   "check:installer",
   "check:deploy-experience",
 ]) {
@@ -42,7 +42,7 @@ for (const path of ["README.md", "README.en.md"]) {
   const content = read(path);
   for (const marker of [
     "https://deploy.workers.cloudflare.com/",
-    "token:generate",
+    "tokens:generate",
     "docs/quick-start.md",
     "docs/upgrading.md",
   ]) {

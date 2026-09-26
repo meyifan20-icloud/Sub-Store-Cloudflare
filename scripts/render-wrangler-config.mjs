@@ -48,7 +48,7 @@ const config = {
     head_sampling_rate: 1,
   },
   secrets: {
-    required: ["SUB_STORE_ADMIN_TOKEN"],
+    required: ["SUB_STORE_ADMIN_TOKEN", "SUB_STORE_PUBLIC_DOWNLOAD_TOKEN"],
   },
   d1_databases: [
     {

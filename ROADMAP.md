@@ -6,7 +6,7 @@ This roadmap is intentionally conservative. The project should stay easy to depl
 
 - Cloudflare Workers Static Assets + Worker API.
 - D1 for structured configuration.
-- A Worker Secret for admin access; subscription access uses scoped D1 download grants.
+- Worker Secrets for admin and download tokens.
 - Cloudflare Deploy Button for quick installs.
 - Agent / CLI installer for seeded sources and collections.
 - Free-verified build-time JavaScript filters/operators, plus CLI-deployed personal scripts.

@@ -15,7 +15,7 @@
 README 顶部的按钮：
 
 ```md
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/meyifan20-icloud/Sub-Store-Cloudflare)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/realchendahuang/sub-store-cloudflare)
 ```
 
 Cloudflare 会读取根目录 [../wrangler.jsonc](../wrangler.jsonc)，自动 provision D1，并用根目录 `package.json` 的 `build` / `deploy` 脚本构建部署。
@@ -23,14 +23,15 @@ Cloudflare 会读取根目录 [../wrangler.jsonc](../wrangler.jsonc)，自动 pr
 部署页会要求填写：
 
 - `SUB_STORE_ADMIN_TOKEN`
+- `SUB_STORE_PUBLIC_DOWNLOAD_TOKEN`
 
-生成管理员 Token：
+跨平台生成两个 token：
 
 ```bash
 node -e "const{randomBytes:r}=require('node:crypto');console.log(r(32).toString('base64url'));console.log(r(32).toString('base64url'))"
 ```
 
-生成值用于 `SUB_STORE_ADMIN_TOKEN`。订阅下载凭证由 Scoped Download Grant 独立生成。仓库根目录不提供 `.dev.vars.example`，避免 Cloudflare 部署表单把公开占位字符串当作 Secret 默认值。
+第一行用于 admin token，第二行用于 download token。两个值必须不同。仓库根目录不提供 `.dev.vars.example`，避免 Cloudflare 部署表单把公开占位字符串当作 Secret 默认值。
 
 部署后进入：
 
@@ -63,7 +64,7 @@ pnpm run install:quick
 单独生成两个项目自带的跨平台 Token：
 
 ```bash
-pnpm run token:generate
+pnpm run tokens:generate
 ```
 
 它会执行：
@@ -72,8 +73,8 @@ pnpm run token:generate
 - 检查 Wrangler 和 Cloudflare 登录。
 - 创建或复用 D1。
 - 生成 `cloudflare/wrangler.deploy.local.jsonc`。
-- 生成或使用 `SUB_STORE_ADMIN_TOKEN`。
-- 首次/后续部署都通过 `--secrets-file` 写入唯一的 Admin Worker Secret。
+- 生成或使用 `SUB_STORE_ADMIN_TOKEN` / `SUB_STORE_PUBLIC_DOWNLOAD_TOKEN`。
+- 写入 Worker secrets。
 - 运行检查、D1 migration、Worker deploy。
 - 渲染并导入 `cloudflare/agent.seed.local.sql`。
 - 验证 `/api/env`、`/api/templates`、`/api/sources`、`/api/collections` 和 collection 下载链接。
@@ -177,6 +178,7 @@ pnpm run deploy:config -- config/agent-setup.local.json cloudflare/wrangler.depl
 
 ```bash
 pnpm --dir cloudflare exec wrangler secret put SUB_STORE_ADMIN_TOKEN --config wrangler.deploy.local.jsonc
+pnpm --dir cloudflare exec wrangler secret put SUB_STORE_PUBLIC_DOWNLOAD_TOKEN --config wrangler.deploy.local.jsonc
 ```
 
 迁移和部署：
@@ -230,6 +232,7 @@ pnpm run dev
 
 ```dotenv
 SUB_STORE_ADMIN_TOKEN=dev-admin-token
+SUB_STORE_PUBLIC_DOWNLOAD_TOKEN=dev-download-token
 ```
 
 访问：
@@ -246,21 +249,32 @@ http://localhost:8787/?token=dev-admin-token
 https://substore.example.com/?token=<admin-token>
 ```
 
-Source / Collection 的订阅链接不再共享一个部署级 Download Token。管理界面调用 `/api/link/source/:id` 或 `/api/link/collection/:id` 时，会自动创建新的 Scoped Download Grant，并把一次性明文 token 放入返回的订阅 URL。
+下载链接：
 
-每个 Grant 可以限定：
-- Source 或 Collection；
-- 输出格式（可选）；
-- 有效期（可选）；
-- 启用 / 撤销状态。
+```text
+https://substore.example.com/download/source/<source-id>?token=<download-token>
+https://substore.example.com/download/collection/<collection-id>?token=<download-token>
+https://substore.example.com/download/collection/<collection-id>/mihomo?token=<download-token>
+https://substore.example.com/download/collection/<collection-id>/sing-box?token=<download-token>
+https://substore.example.com/download/collection/<collection-id>/uri?token=<download-token>
+```
 
-D1 只保存 token 的 SHA-256 hash。管理员可以在“分享/授权”管理界面撤销旧链接。
+不带输出格式的链接是通用订阅，Worker 会按客户端 User-Agent 自动选择格式。
 
-不带输出格式的授权链接仍可按客户端 User-Agent 自动选择格式。远程订阅缓存与 `refresh=1` 行为保持不变。
+临时转换链接：
+
+```text
+https://substore.example.com/download/source/<source-id>?token=<download-token>&url=https%3A%2F%2Fexample.com%2Fsub
+https://substore.example.com/download/source/<source-id>/uri?token=<download-token>&content=<url-encoded-node-text>
+```
+
+`url`、`content` 和 `ua` 只影响本次请求，不会写入 D1。
+
+远程订阅默认边缘缓存 300 秒。可以在“设置 → 请求设置”中把 TTL 设为 `0` 关闭，或者给下载链接添加 `refresh=1` 强制刷新。Cache API 不可用时 Worker 会直接请求上游。
 
 ## 从旧版本升级
 
-继续使用原来的 Worker、D1 和 Admin Worker Secret。Scoped Download Grant 随 D1 保留。Deploy Button 仓库副本不会自动获得上游版本；完整同步、migration、备份和回滚步骤见 [升级指南](upgrading.md)。
+继续使用原来的 Worker、D1 和 Worker Secrets。Deploy Button 仓库副本不会自动获得上游版本；完整同步、migration、备份和回滚步骤见 [升级指南](upgrading.md)。
 
 ## 8. 备份与恢复
 

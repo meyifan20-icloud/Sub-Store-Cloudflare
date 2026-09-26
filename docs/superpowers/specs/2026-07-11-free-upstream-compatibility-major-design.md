@@ -124,7 +124,7 @@ Cache TTL and stale behavior have conservative deployment-wide defaults with bou
 
 D1 will store scoped download grants containing a cryptographically random token hash, resource type and ID, optional target restriction, expiration, enabled state, and timestamps. Plain tokens are returned only once at creation.
 
-Personal-edition override: the deployment-wide download token is removed. A scoped token grants access only to its source or collection and optional target. The UI can create, list, copy-at-creation, disable, and delete grants. This is private link management, not a public sharing platform.
+The existing deployment-wide download token remains supported. A scoped token grants access only to its source or collection and optional target. The UI can create, list, copy-at-creation, disable, and delete grants. This is private link management, not a public sharing platform.
 
 ### Bounded recycle bin
 

@@ -177,7 +177,7 @@
     })),
   ];
   const tips = () => {
-    window.open('https://github.com/meyifan20-icloud/Sub-Store-Cloudflare#%E9%85%8D%E7%BD%AE%E6%A8%A1%E5%9E%8B');
+    window.open('https://github.com/realchendahuang/sub-store-cloudflare#%E9%85%8D%E7%BD%AE%E6%A8%A1%E5%9E%8B');
   };
 </script>
 

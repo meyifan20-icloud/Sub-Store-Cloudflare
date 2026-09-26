@@ -12,8 +12,3 @@ Upstream projects:
 
 - https://github.com/sub-store-org/Sub-Store
 - https://github.com/sub-store-org/Sub-Store-Front-End
-
-Implementation provenance:
-
-- https://github.com/realchendahuang/sub-store-cloudflare
-  (Cloudflare-native implementation baseline; retained under AGPL-3.0-or-later)

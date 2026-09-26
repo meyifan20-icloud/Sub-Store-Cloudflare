@@ -22,7 +22,7 @@ Please redact live subscription URLs, node URIs, admin tokens, download tokens, 
 The app uses:
 
 - `SUB_STORE_ADMIN_TOKEN` for the admin UI and `/api/*`.
-- `/download/*` uses scoped download grants whose plaintext token is returned only when a link is created; D1 stores only the token hash.
+- `SUB_STORE_PUBLIC_DOWNLOAD_TOKEN` for `/download/*`.
 
 Use long random values, for example:
 

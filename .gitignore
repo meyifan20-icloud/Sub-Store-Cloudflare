@@ -59,5 +59,3 @@ cloudflare/worker-configuration.d.ts
 !**/.vscode/extensions.json
 *.swp
 *.swo
-
-cloudflare/.deploy-secrets.local

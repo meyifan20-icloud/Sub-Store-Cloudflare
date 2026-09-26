@@ -1,14 +1,12 @@
 # Sub-Store Cloudflare
 
-> **Personal maintained edition**: this repository is independently maintained by meyifan20-icloud. Its Cloudflare-native technical baseline is derived from [realchendahuang/sub-store-cloudflare](https://github.com/realchendahuang/sub-store-cloudflare). Deployment, clone, and runtime entry points use this repository.
-
-[![Release](https://img.shields.io/github/v/release/meyifan20-icloud/Sub-Store-Cloudflare?include_prereleases&sort=semver)](https://github.com/meyifan20-icloud/Sub-Store-Cloudflare/releases)
-[![License: AGPL-3.0](https://img.shields.io/github/license/meyifan20-icloud/Sub-Store-Cloudflare)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/realchendahuang/sub-store-cloudflare?include_prereleases&sort=semver)](https://github.com/realchendahuang/sub-store-cloudflare/releases)
+[![License: AGPL-3.0](https://img.shields.io/github/license/realchendahuang/sub-store-cloudflare)](LICENSE)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/workers/)
 [![D1](https://img.shields.io/badge/Storage-D1-F38020?logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/d1/)
 [![Workers Free](https://img.shields.io/badge/Designed_for-Workers_Free-2F7DFF)](docs/upstream-compatibility.md)
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/meyifan20-icloud/Sub-Store-Cloudflare)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/realchendahuang/sub-store-cloudflare)
 
 Run subscription sources, self-hosted nodes, processing actions, and routing templates in your own Cloudflare Worker, then give each client one final subscription URL.
 
@@ -18,7 +16,7 @@ Chinese is the primary documentation language: [README.md](README.md).
 
 ## Fastest install: three steps
 
-### 1. Prepare one admin token
+### 1. Prepare two different random tokens
 
 Use a password manager, or run this cross-platform Node.js command:
 
@@ -26,13 +24,13 @@ Use a password manager, or run this cross-platform Node.js command:
 node -e "const{randomBytes:r}=require('node:crypto');console.log(r(32).toString('base64url'));console.log(r(32).toString('base64url'))"
 ```
 
-Use the value for `SUB_STORE_ADMIN_TOKEN`. Subscription downloads no longer use a deployment-wide download token; copying a subscription link automatically issues a scoped D1 download grant.
+Use the first line for `SUB_STORE_ADMIN_TOKEN` and the second for `SUB_STORE_PUBLIC_DOWNLOAD_TOKEN`. Never deploy fixed values copied from documentation or screenshots.
 
 ### 2. Click Deploy to Cloudflare
 
 Cloudflare imports a repository copy into your GitHub/GitLab account, provisions the Worker and D1 database, asks for the two required secrets, and runs `pnpm run build` followed by `pnpm run deploy`.
 
-Only the admin secret is required. Subscription credentials are issued per link as scoped D1 download grants.
+Both secret fields must contain the different random values you generated.
 
 ### 3. Open the admin UI
 
@@ -61,7 +59,7 @@ See the Chinese [five-minute quick start](docs/quick-start.md) for the complete 
 Requires Git, Node.js 22+, and Corepack:
 
 ```bash
-git clone https://github.com/meyifan20-icloud/Sub-Store-Cloudflare.git
+git clone https://github.com/realchendahuang/sub-store-cloudflare.git
 cd sub-store-cloudflare
 corepack enable
 pnpm run install:cloudflare
@@ -75,10 +73,10 @@ For an empty web-configured deployment:
 pnpm run install:quick
 ```
 
-Generate the admin token with:
+Generate both deployment tokens with:
 
 ```bash
-pnpm run token:generate
+pnpm run tokens:generate
 ```
 
 Non-interactive Agent runs without `config/agent-setup.local.json` stop before deployment instead of importing example subscription URLs.
@@ -98,7 +96,7 @@ Non-interactive Agent runs without `config/agent-setup.local.json` stop before d
 - JSON/JSON5, Mihomo YAML, URI, and common Surge/Loon/Quantumult X input.
 - Mihomo, Stash, Surge, Surge Mac, Surfboard, Loon, Egern, Shadowrocket, Quantumult X, sing-box, v2ray, URI, and JSON output.
 - One-shot proxy/subscription and rule conversion tools.
-- Scoped, revocable download grants are the only subscription credentials; there is no deployment-wide download master token.
+- Scoped expiring download grants and a bounded 50-entry recycle bin.
 - Safe subscription metadata propagation, optional Cache API caching, backup/restore, and node location/ASN lookup.
 
 See the [upstream compatibility matrix](docs/upstream-compatibility.md) for tested support and explicit exclusions.

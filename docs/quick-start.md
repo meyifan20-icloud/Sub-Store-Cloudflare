@@ -8,32 +8,42 @@
 
 - Cloudflare 账号；
 - GitHub 或 GitLab 账号；
-- 一个管理员 Token；
+- 两个不同的随机 Token；
 - 至少一个远程订阅 URL，或者一段本地节点文本。
 
 这个项目按 Workers Free 使用边界设计，但 Cloudflare 账号的实际用量和计费状态仍以你的控制台为准。
 
-## 第一步：生成管理员 Token
+## 第一步：生成两个 Token
 
-使用密码管理器生成一个管理员口令，或运行：
+使用密码管理器生成两个至少 32 字节的随机值，或者运行：
 
 ```bash
-pnpm run token:generate
+node -e "const{randomBytes:r}=require('node:crypto');console.log(r(32).toString('base64url'));console.log(r(32).toString('base64url'))"
 ```
 
-它只用于 `SUB_STORE_ADMIN_TOKEN`。订阅下载不设置全局总钥匙；每次复制 Source / Collection 订阅链接时，后台会自动在 D1 创建独立的 Scoped Download Grant。
+- 第一行：`SUB_STORE_ADMIN_TOKEN`
+- 第二行：`SUB_STORE_PUBLIC_DOWNLOAD_TOKEN`
+
+两个值必须不同。把它们保存到密码管理器，不要发到 issue、聊天群或截图里。
+
+如果已经克隆仓库，也可以运行：
+
+```bash
+pnpm run tokens:generate
+```
 
 ## 第二步：部署到 Cloudflare
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/meyifan20-icloud/Sub-Store-Cloudflare)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/realchendahuang/sub-store-cloudflare)
 
 在 Cloudflare 部署页确认：
 
 1. 项目名称可以使用默认的 `sub-store-cloudflare`。
 2. D1 选择自动创建的新数据库；只有升级已有部署时才选择原数据库。
 3. `SUB_STORE_ADMIN_TOKEN` 填管理 Token。
-4. 构建命令是 `pnpm run build`。
-5. 部署命令是 `pnpm run deploy`。
+4. `SUB_STORE_PUBLIC_DOWNLOAD_TOKEN` 填下载 Token。
+5. 构建命令是 `pnpm run build`。
+6. 部署命令是 `pnpm run deploy`。
 
 Secret 输入框不应该出现可直接使用的公开默认值。如果看到 `replace-with-...` 一类固定字符串，请不要部署，并到仓库 issue 反馈。
 
@@ -55,7 +65,7 @@ https://sub-store-cloudflare.<你的子域>.workers.dev/?token=<admin-token>
 
 前端读取 Token 后会把它从地址栏移除，并保存在当前浏览器中用于后续管理请求。
 
-如果页面显示“数据加载失败”，输入 `SUB_STORE_ADMIN_TOKEN`。
+如果页面显示“数据加载失败”，输入 `SUB_STORE_ADMIN_TOKEN`，不要输入下载 Token。
 
 ## 第四步：添加第一个 Source
 
@@ -99,7 +109,7 @@ Migration 会预置一个包含全部已启用 Source 的 `Daily` Collection。�
 - Quantumult X：`qx`
 - 通用 URI：`uri`
 
-点击复制链接时会自动创建只对应当前 Source / Collection（以及所选输出格式）的 Scoped Download Grant。Admin Token 不会进入客户端订阅链接。
+下载链接使用 `SUB_STORE_PUBLIC_DOWNLOAD_TOKEN`。不要把 admin token 放进客户端订阅链接。
 
 ## 最后做两件事
 
