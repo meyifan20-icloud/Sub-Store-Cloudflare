@@ -1,0 +1,75 @@
+name: Restore exact upstream design
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/restore-upstream-design.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Replace repository contents with upstream main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/realchendahuang/sub-store-cloudflare.git /tmp/upstream
+          rsync -a --delete             --exclude '.git/'             --exclude '.github/workflows/restore-upstream-design.yml'             /tmp/upstream/ ./
+
+          test -f LICENSE
+          test -f NOTICE
+          test -f package.json
+          test -f wrangler.jsonc
+          test -f scripts/install-cloudflare.mjs
+          test -f cloudflare/src/routes/download.ts
+
+      - name: Verify tree matches upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          def files(root):
+              result={}
+              for p in Path(root).rglob("*"):
+                  if not p.is_file():
+                      continue
+                  rel=p.relative_to(root).as_posix()
+                  if rel.startswith(".git/") or rel==".github/workflows/restore-upstream-design.yml":
+                      continue
+                  result[rel]=hashlib.sha256(p.read_bytes()).hexdigest()
+              return result
+
+          a=files(".")
+          b=files("/tmp/upstream")
+          if a!=b:
+              missing=sorted(set(b)-set(a))
+              extra=sorted(set(a)-set(b))
+              changed=sorted(k for k in set(a)&set(b) if a[k]!=b[k])
+              print("missing", missing)
+              print("extra", extra)
+              print("changed", changed)
+              raise SystemExit(1)
+          print(f"Exact upstream match: {len(a)} files")
+          PY
+
+      - name: Remove one-time restore workflow
+        run: rm -f .github/workflows/restore-upstream-design.yml
+
+      - name: Commit exact upstream restoration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "restore: match upstream Sub-Store Cloudflare design"
+          git push origin main
