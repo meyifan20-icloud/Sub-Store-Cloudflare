@@ -1,0 +1,109 @@
+name: Personalize imported repository
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/personalize-import.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  personalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Rewrite repository entry points
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          old_url = "https://github.com/realchendahuang/sub-store-cloudflare"
+          old_slug = "realchendahuang/sub-store-cloudflare"
+          new_url = "https://github.com/meyifan20-icloud/Sub-Store-Cloudflare"
+          new_slug = "meyifan20-icloud/Sub-Store-Cloudflare"
+
+          paths = subprocess.check_output(["git", "ls-files", "-z"]).split(b"\0")
+          changed = []
+          for raw in paths:
+              if not raw:
+                  continue
+              p = Path(raw.decode("utf-8", errors="surrogateescape"))
+              try:
+                  data = p.read_bytes()
+              except OSError:
+                  continue
+              if b"\0" in data:
+                  continue
+              try:
+                  text = data.decode("utf-8")
+              except UnicodeDecodeError:
+                  continue
+
+              new = text.replace(old_url, new_url).replace(old_slug, new_slug)
+              if new != text:
+                  p.write_text(new, encoding="utf-8")
+                  changed.append(str(p))
+
+          print(f"Rewritten repository references in {len(changed)} files")
+
+          readme = Path("README.md")
+          text = readme.read_text(encoding="utf-8")
+          marker = "# Sub-Store Cloudflare\n"
+          note = (
+              "\n> **个人维护版**：本仓库由 meyifan20-icloud 独立维护，"
+              "Cloudflare-native 技术基线来源于 "
+              "[realchendahuang/sub-store-cloudflare]"
+              "(https://github.com/realchendahuang/sub-store-cloudflare)。"
+              "日常部署、Clone 与资源入口均使用本仓库；原项目保留在致谢与来源说明中。\n"
+          )
+          if "个人维护版" not in text:
+              text = text.replace(marker, marker + note, 1)
+              readme.write_text(text, encoding="utf-8")
+
+          readme_en = Path("README.en.md")
+          text = readme_en.read_text(encoding="utf-8")
+          marker = "# Sub-Store Cloudflare\n"
+          note = (
+              "\n> **Personal maintained edition**: this repository is independently maintained by "
+              "meyifan20-icloud. Its Cloudflare-native technical baseline is derived from "
+              "[realchendahuang/sub-store-cloudflare]"
+              "(https://github.com/realchendahuang/sub-store-cloudflare). "
+              "Deployment, clone, and runtime entry points use this repository.\n"
+          )
+          if "Personal maintained edition" not in text:
+              text = text.replace(marker, marker + note, 1)
+              readme_en.write_text(text, encoding="utf-8")
+
+          notice = Path("NOTICE")
+          text = notice.read_text(encoding="utf-8")
+          source = (
+              "\nImplementation provenance:\n\n"
+              "- https://github.com/realchendahuang/sub-store-cloudflare\n"
+              "  (Cloudflare-native implementation baseline; retained under AGPL-3.0-or-later)\n"
+          )
+          if "Implementation provenance:" not in text:
+              notice.write_text(text.rstrip() + "\n" + source, encoding="utf-8")
+          PY
+
+      - name: Remove one-time bootstrap workflows
+        shell: bash
+        run: |
+          rm -f .github/workflows/bootstrap-import.yml
+          rm -f .github/workflows/personalize-import.yml
+
+      - name: Commit personalization
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: personalize Cloudflare deployment repository"
+          git push origin main
