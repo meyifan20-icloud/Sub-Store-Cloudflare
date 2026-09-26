@@ -1,12 +1,14 @@
 # Sub-Store Cloudflare
 
-[![Release](https://img.shields.io/github/v/release/realchendahuang/sub-store-cloudflare?include_prereleases&sort=semver)](https://github.com/realchendahuang/sub-store-cloudflare/releases)
-[![License: AGPL-3.0](https://img.shields.io/github/license/realchendahuang/sub-store-cloudflare)](LICENSE)
+> **个人维护版**：本仓库由 meyifan20-icloud 独立维护，Cloudflare-native 技术基线来源于 [realchendahuang/sub-store-cloudflare](https://github.com/realchendahuang/sub-store-cloudflare)。日常部署、Clone 与资源入口均使用本仓库；原项目保留在致谢与来源说明中。
+
+[![Release](https://img.shields.io/github/v/release/meyifan20-icloud/Sub-Store-Cloudflare?include_prereleases&sort=semver)](https://github.com/meyifan20-icloud/Sub-Store-Cloudflare/releases)
+[![License: AGPL-3.0](https://img.shields.io/github/license/meyifan20-icloud/Sub-Store-Cloudflare)](LICENSE)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/workers/)
 [![D1](https://img.shields.io/badge/Storage-D1-F38020?logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/d1/)
 [![Workers Free](https://img.shields.io/badge/Designed_for-Workers_Free-2F7DFF)](docs/upstream-compatibility.md)
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/realchendahuang/sub-store-cloudflare)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/meyifan20-icloud/Sub-Store-Cloudflare)
 
 把机场订阅、自建节点、节点处理和分流模板放到你自己的 Cloudflare Worker 中，最终只给客户端一个订阅链接。
 
@@ -65,7 +67,7 @@ node -e "const{randomBytes:r}=require('node:crypto');console.log(r(32).toString(
 需要 Git、Node.js 22+ 和 Corepack：
 
 ```bash
-git clone https://github.com/realchendahuang/sub-store-cloudflare.git
+git clone https://github.com/meyifan20-icloud/Sub-Store-Cloudflare.git
 cd sub-store-cloudflare
 corepack enable
 pnpm run install:cloudflare

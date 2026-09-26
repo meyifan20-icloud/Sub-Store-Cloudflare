@@ -21,7 +21,7 @@ Cloudflare 导入的仓库副本不会自动合并本上游仓库的新提交。
 ```bash
 git clone https://github.com/<你的账号>/<你的仓库>.git
 cd <你的仓库>
-git remote add upstream https://github.com/realchendahuang/sub-store-cloudflare.git
+git remote add upstream https://github.com/meyifan20-icloud/Sub-Store-Cloudflare.git
 git fetch upstream --tags
 ```
 
